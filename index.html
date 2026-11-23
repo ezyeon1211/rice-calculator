@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>메이플스토리 사냥 수익 계산기</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--text:#1d1d1b;--sub:#6b6a65;--line:#e2e0d8;--acc:#e8730c;--accbg:#fff1e3;--good:#1a7f4b;--bad:#c23b22;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17171a;--card:#222226;--text:#f1f0ec;--sub:#9a99a3;--line:#33333a;--acc:#ff9340;--accbg:#33261a;--good:#4cc287;--bad:#ff7a63}}
+:root[data-theme="dark"]{--bg:#17171a;--card:#222226;--text:#f1f0ec;--sub:#9a99a3;--line:#33333a;--acc:#ff9340;--accbg:#33261a;--good:#4cc287;--bad:#ff7a63}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;line-height:1.5}
+main{max-width:760px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;margin:0 0 4px}
+.sub{color:var(--sub);font-size:13px;margin:0 0 18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.card h2{font-size:14px;margin:0 0 12px;color:var(--acc)}
+label{display:block;font-size:13px;color:var(--sub);margin:0 0 10px}
+input,select{display:block;width:100%;margin-top:4px;padding:9px 10px;font-size:16px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text)}
+input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
+.hint{font-size:11px;color:var(--sub);margin-top:2px}
+.chk{display:flex;align-items:center;flex-wrap:wrap;gap:8px;color:var(--text)}
+.chk input{width:auto;margin:0}
+.prow{display:flex;gap:8px;margin:0 0 10px;flex-wrap:wrap}
+.prow input,.prow select{flex:1;min-width:120px;margin-top:0}
+button.b{padding:9px 12px;font-size:14px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text);cursor:pointer}
+button.b:hover{border-color:var(--acc)}
+textarea{display:block;width:100%;padding:9px 10px;font-size:13px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);font-family:ui-monospace,Menlo,Consolas,monospace;resize:vertical;margin:0 0 10px}
+.card h3{font-size:12px;font-weight:600;color:var(--sub);margin:14px 0 8px}
+details.adv{margin:0 0 10px}
+details.adv summary{cursor:pointer;font-size:13px;color:var(--sub);margin-bottom:8px}
+.grid>div{display:contents}
+.res{margin-top:14px}
+.res h3{font-size:12px;font-weight:600;color:var(--sub);margin:18px 0 2px}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.row:last-child{border:0}
+.row b{font-variant-numeric:tabular-nums;text-align:right}
+.total{background:var(--accbg);border-radius:12px;padding:14px 16px;margin-top:14px}
+.total .big{font-size:26px;font-weight:700;color:var(--acc);font-variant-numeric:tabular-nums}
+.total .l{font-size:12px;color:var(--sub)}
+.neg{color:var(--bad)}.pos{color:var(--good)}
+.note{font-size:12px;color:var(--sub);margin-top:16px}
+code{background:var(--bg);padding:1px 5px;border-radius:4px;font-size:11px}
+</style>
+</head>
+<body>
+<main>
+<h1>사냥 수익 계산기</h1>
+<p class="sub">30분 기준 · 몬스터 메소 + 솔 에르다 조각 판매 수익</p>
+
+<div class="grid">
+  <section class="card">
+    <h2>사냥 조건</h2>
+    <label>한 번에 소환되는 몬스터 수<input id="n" type="number" inputmode="decimal" value="40"></label>
+    <label>몬스터 레벨<input id="lv" type="number" inputmode="decimal" value="0"></label>
+    <label>캐릭터 레벨<input id="clv" type="number" inputmode="decimal" value="0"><span class="hint">일일 메소 제한 계산용 (0이면 미적용)</span></label>
+    <label>하루 사냥 시간 (시간)<input id="hours" type="number" inputmode="decimal" value="5"></label>
+    <label>주당 사냥 일수<input id="days" type="number" inputmode="numeric" min="1" max="7" value="7"><span class="hint">주간 유니온 버프 구매분을 사냥하는 날에 나눠 써요</span></label>
+    
+    
+    
+    
+    
+    
+    <label>홀리 심볼<select id="holy"><option value="0">사용 안 함</option><option value="24">쓸만한 홀리 심볼 (비숍 제외) 24%</option><option value="30">홀리 심볼 (비숍) 30%</option></select></label>
+    <details class="adv"><summary>고급 설정</summary>
+    <label>몬스터 소환 주기 (초)<input id="regen" type="number" inputmode="decimal" value="7.5"><span class="hint">30분 소환 횟수 = 1800 ÷ 주기</span></label>
+    <label>몬스터 기본 메소 (레벨 × 계수)<input id="coef" type="number" inputmode="decimal" value="7.5"></label>
+    </details>
+    
+  </section>
+  <section class="card">
+    <h2>경매장 · 소모품</h2>
+    <label>솔 에르다 조각 판매 가격 (만 메소)<input id="price" type="number" inputmode="decimal" value="650"></label>
+    <label>경매장 수수료<select id="fee"><option value="5" selected>기본 5%</option><option value="3">MVP 실버 이상 / PC방 접속 3%</option></select></label>
+    <div class="grid" style="margin-top:6px">
+      <label class="chk" style="align-self:end;padding-bottom:9px"><input id="elixir" type="checkbox">재물 획득의 비약 사용<span class="hint">메소 획득량·아이템 드롭률 20%</span></label>
+      <label>재물 획득의 비약 가격 (만 메소)<input id="elixirPrice" type="number" inputmode="decimal" value="455"></label>
+    </div>
+    <label style="margin-top:6px">기타 소모품 가격 총합 (만 메소)<input id="etcCost" type="number" inputmode="decimal" value="50"><span class="hint">경험치 쿠폰·VIP 버프 등 30분마다 쓰는 소모품 합계 · 30분 소모 비용에 더해져요</span></label>
+  </section>
+</div>
+
+
+
+<section class="card" style="margin-top:14px">
+  <h2>어빌리티 · 유니온</h2>
+  <div class="grid">
+    <div>
+      <label style="grid-column:1/-1;order:1">팬텀 유니온 공격대 효과 (메소 획득량)<select id="phantom"><option value="0">없음</option><option value="1">B 등급 (60레벨) 1%</option><option value="2">A 등급 (100레벨) 2%</option><option value="3">S 등급 (140레벨) 3%</option><option value="4">SS 등급 (200레벨) 4%</option><option value="5">SSS 등급 (250레벨) 5%</option></select></label>
+      <label style="order:2">어빌리티 메소 획득량<select id="abMeso"><option value="0">없음</option><optgroup label="에픽"><option value="8">8%</option><option value="9">9%</option><option value="10">10%</option></optgroup><optgroup label="유니크"><option value="13">13%</option><option value="14">14%</option><option value="15">15%</option></optgroup><optgroup label="레전드리"><option value="18">18%</option><option value="19">19%</option><option value="20">20%</option></optgroup></select></label>
+      <label style="order:4">아티팩트 메소 획득량 레벨 (0~10)<input id="arMeso" type="number" inputmode="numeric" min="0" max="10" value="0"><span class="hint" id="arMesoPct"></span></label>
+    </div>
+    <div>
+      <label style="order:3">어빌리티 아이템 드롭률<select id="abDrop"><option value="0">없음</option><optgroup label="에픽"><option value="8">8%</option><option value="9">9%</option><option value="10">10%</option></optgroup><optgroup label="유니크"><option value="13">13%</option><option value="14">14%</option><option value="15">15%</option></optgroup><optgroup label="레전드리"><option value="18">18%</option><option value="19">19%</option><option value="20">20%</option></optgroup></select></label>
+      <label style="order:5">아티팩트 드롭률 레벨 (0~10)<input id="arDrop" type="number" inputmode="numeric" min="0" max="10" value="0"><span class="hint" id="arDropPct"></span></label>
+      
+      
+    </div>
+  </div>
+  <div class="grid" style="margin-top:6px">
+    <label style="grid-column:1/-1">유니온 공격대 전투력<input id="power" type="number" inputmode="decimal" value="0"><span class="hint" id="coinHint">주간 유니온 코인 0개</span></label>
+    <label>보스용 유니온의 힘 3단계 (주 구매 횟수)<input id="bossP" type="number" inputmode="numeric" min="0" value="0"><span class="hint">1개당 30코인</span></label>
+    <label>보스용 유니온의 행운 2단계 (주 구매 횟수)<input id="bossL" type="number" inputmode="numeric" min="0" max="20" value="0"><span class="hint">1개당 50코인 · 행운 2단계 주 20개 한도를 같이 써요</span></label>
+  </div>
+  <div class="hint">유니온 버프는 매주 받는 코인으로 부·행운의 단계별로 각각 최대 20개까지 사고, 수익 증가 ÷ 코인이 큰 순서로 자동 배분해요. 보스용 구매분은 먼저 빼요. 사냥 시작부터 3단계 → 2단계 → 1단계 순으로 쓰고, 지속시간이 30분보다 짧은 단계는 나머지 시간 동안 꺼진 수치로 계산해요.</div>
+</section>
+
+<section class="card" style="margin-top:14px">
+  <h2>장비 잠재능력</h2>
+  <div class="grid">
+    <label>메소 획득량 합 (%)<input id="potMeso" type="number" inputmode="decimal" min="0" value="0"><span class="hint" id="potMesoHint">상한 100%</span></label>
+    <label>아이템 드롭률 합 (%)<input id="potDrop" type="number" inputmode="decimal" min="0" value="0"><span class="hint" id="potDropHint">상한 200%</span></label>
+  </div>
+</section>
+
+<section class="card res">
+  <h2>결과</h2>
+  <div class="total" style="margin-top:0">
+    <div class="l">30분 순수익</div>
+    <div class="big" id="t30"></div>
+    <div class="l" style="margin-top:6px">1시간 <b id="t60"></b> · 하루 <span id="hl"></span>시간 (제한 적용) <b id="t480"></b></div>
+  </div>
+  <h3>30분 수익 (소모품·버프 사용 중)</h3>
+  <div class="row"><span>메소 수익</span><b id="r1"></b></div>
+  <div class="row"><span>조각 기대 드롭 수</span><b id="r2"></b></div>
+  <div class="row"><span>조각 수익 (수수료 제외)</span><b id="r3"></b></div>
+  <div class="row"><span>소모 비용</span><b id="r4"></b></div>
+  <h3>메소 획득량 · 아이템 드롭률 (인게임 표기)</h3>
+  <div class="row"><span>메소 획득량 (소모품 사용 중)</span><b id="mesoTotal"></b></div>
+  <div class="row"><span>아이템 드롭률 (소모품 사용 중)</span><b id="dropTotal"></b></div>
+  <div class="row"><span>메소 획득량 (사냥 시간 평균)</span><b id="mesoAvg"></b></div>
+  <div class="row"><span>아이템 드롭률 (사냥 시간 평균)</span><b id="dropAvg"></b></div>
+  <h3>일일 메소 제한</h3>
+  <div class="row"><span>제한 (순수 드롭량)</span><b id="capV"></b></div>
+  <div class="row"><span>제한 도달 시간</span><b id="capT"></b></div>
+  <h3>유니온 코인 · 버프 구매</h3>
+  <div class="row"><span>주간 유니온 코인 (사용 / 획득)</span><b id="coinW"></b></div>
+  <div class="row"><span>주간 유니온의 부 구매</span><b id="planW"></b></div>
+  <div class="row"><span>주간 유니온의 행운 구매</span><b id="planL"></b></div>
+  <div class="row"><span>보스용 유니온의 힘 3단계 구매 (주)</span><b id="bossPR"></b></div>
+  <div class="row"><span>보스용 유니온의 행운 2단계 구매 (주)</span><b id="bossLR"></b></div>
+  <div class="row"><span>하루 평균 유니온 코인 사용</span><b id="coinU"></b></div>
+  <div class="row"><span>3단계 1개당 주간 수익 증가 (코인당)</span><b id="eff"></b></div>
+</section>
+
+<section class="card" style="margin-top:14px">
+  <h2>프리셋 · 공유</h2>
+  <div class="prow"><input id="pname" data-skip="1" type="text" placeholder="프리셋 이름"><button class="b" id="psave" type="button">저장</button></div>
+  <div class="prow"><select id="plist" data-skip="1"></select><button class="b" id="pload" type="button">불러오기</button><button class="b" id="pdel" type="button">삭제</button></div>
+  <h3>공유 코드</h3>
+  <div class="prow"><button class="b" id="gen" type="button">현재 설정으로 코드 만들기</button><button class="b" id="copy" type="button">복사</button></div>
+  <textarea id="code" rows="3" readonly placeholder="여기에 공유 코드가 만들어져요"></textarea>
+  <textarea id="codeIn" rows="3" placeholder="받은 공유 코드를 붙여넣어 주세요"></textarea>
+  <div class="prow"><button class="b" id="applyCode" type="button">코드로 불러오기</button></div>
+  <div class="hint" id="pmsg"></div>
+</section>
+
+<p class="note"><button id="reset" type="button" style="font-size:12px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--text)">입력값 초기화</button><br><br>적용 식<br>
+메소 = 몬스터 수 × 레벨 × 7.5 × 소환 횟수(1800 ÷ 7.5 = 240) × (100 + 메소 획득량) ÷ 100<br>
+조각 = 몬스터 수 × 소환 횟수 × 0.0425% × (100 + 드롭률 ÷ 2 + 24) ÷ 100 × 판매가 × (1 − 수수료)<br>
+메소 획득량(인게임 표기) = 100 × 비약(사용 시 1.2) × (1 + 합%) − 100 (합 = 팬텀 유니온 + 어빌리티 + 아티팩트 + 잠재능력(상한 100%))<br>아이템 드롭률(인게임 표기) = 비약(사용 시 20) + 홀리 심볼 + 어빌리티 + 아티팩트 + 잠재능력(상한 200%)<br>아티팩트 % = 레벨 + 레벨 ÷ 5(내림)<br>메소 획득량·아이템 드롭률의 인게임 표기 수치는 소수점 버림 (유니온 버프 켜짐/꺼짐 각각 버림 후 시간 평균)<br>일일 메소 제한 = 캐릭터 레벨 구간별 상한 (메소 획득량을 곱하기 전 순수 드롭량 기준)<br>유니온 버프 = 지속시간(분) ÷ 30 만큼 시간 가중 평균 (부는 나머지 합에 +50, 행운은 드롭률에 +50)<br>유니온 버프는 사냥 시작부터 차례로 사용하고, 구매량이 모자란 이후 구간은 효과 없이 계산 (1시간·하루 수익과 사냥 시간 평균 수치에 반영)<br>유니온 코인 = 전투력 × 60.48 ÷ 1000만 (주간, 버림) · 부·행운 단계별로 각각 주 20개까지 구매 · 수익 증가 ÷ 코인이 큰 순서로 구매 · 주간 구매분은 주당 사냥 일수로 나눠 하루 사용량에 반영 · 보스용 구매분(힘 3단계 30코인, 행운 2단계 50코인)은 먼저 빼고 남은 코인으로 계산하며 행운 2단계는 주 20개 한도를 같이 사용</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const v=id=>parseFloat($(id).value)||0;
+function fmt(x){
+  const neg=x<0;x=Math.round(Math.abs(x));
+  if(x<10000)return (neg?"-":"")+x.toLocaleString("ko-KR")+" 메소";
+  const eok=Math.floor(x/1e8),man=Math.floor((x%1e8)/1e4);
+  let s="";if(eok)s+=eok.toLocaleString("ko-KR")+"억 ";if(man)s+=man.toLocaleString("ko-KR")+"만";
+  return (neg?"-":"")+s.trim()+" 메소";
+}
+function calc(){
+  const n=v("n"),lv=v("lv"),p=v("price")*10000,f=v("fee")/100,
+    rg=v("regen")||7.5,k=v("coef"),cyc=1800/rg,
+    ar=l=>{l=Math.min(10,Math.max(0,Math.floor(l)||0));return l+Math.floor(l/5)},
+    sumM=v("phantom")+v("abMeso")+ar(v("arMeso"))+Math.min(100,Math.max(0,v("potMeso"))),
+    sumD=v("holy")+v("abDrop")+ar(v("arDrop"))+Math.min(200,Math.max(0,v("potDrop"))),
+    elOn=$("elixir").checked,ep=v("elixirPrice")*10000,c0=v("etcCost")*10000,
+    
+    days=Math.min(7,Math.max(1,Math.floor(v("days"))||7)),
+    wk=Math.floor(v("power")*60.48/1e7+1e-9),
+    bP=Math.max(0,Math.floor(v("bossP"))),bL=Math.min(20,Math.max(0,Math.floor(v("bossL")))),boss=bP*30+bL*50,
+    CO=[70,50,30],DU=[30,20,10],LIM=20,
+    ov=(i,a,b)=>Math.max(0,Math.min(i+1,b)-Math.max(i,a)),
+    seg=(i,a,V)=>V[0]*ov(i,0,a[0])+V[1]*ov(i,a[0],a[0]+a[1])+V[2]*ov(i,a[0]+a[1],a[0]+a[1]+a[2]),
+    mV=(em,w)=>Math.floor(100*em*(1+(sumM+(w?50:0))/100)-100+1e-9),
+    dV=(e,w)=>Math.floor((e?20:0)+sumD+(w?50:0)+1e-9),
+    cl=v("clv"),hrs=Math.min(24,Math.max(0,v("hours"))),
+    cap=cl<=0?Infinity:cl<=99?2e7:cl<=199?4e7:cl<=259?8e7+Math.floor((cl-200)/5)*5e6:1.5e8+Math.floor((Math.min(cl,300)-260)/5)*1e7,
+    base30=n*lv*k*cyc,
+    ses=(i,Wa,La)=>{const e=elOn,fw=seg(i,Wa,DU)/30,fl=seg(i,La,DU)/30,em=e?1.2:1;
+      return{e,fw,fl,mOn:mV(em,1),mOff:mV(em,0),dOn:dV(e,1),dOff:dV(e,0),
+        m:fw*mV(em,1)+(1-fw)*mV(em,0),d:fl*dV(e,1)+(1-fl)*dV(e,0),
+        coin:seg(i,Wa,CO)+seg(i,La,CO)}},
+    sim=(h,Wa,La)=>{let cum=0,meso=0,frag=0,cost=0,coin=0,mt=0,dt=0,t=0;
+      for(let i=0;t<h-1e-9;i++,t+=0.5){
+        const len=Math.min(0.5,h-t)*2,s=ses(i,Wa,La),pure=Math.min(base30*len,Math.max(0,cap-cum));
+        cum+=pure;meso+=pure*(100+s.m)/100;
+        frag+=n*cyc*0.000425*(100+s.d/2+24)/100*len*p*(1-f);
+        cost+=(c0+(s.e?ep:0))*len;coin+=s.coin;mt+=s.m*len;dt+=s.d*len}
+      const w=h*2||1;
+      return{meso,frag,cost,coin,m:mt/w,d:dt/w,net:meso+frag-cost}},
+    pd=A=>[A.w.map(x=>x/days),A.l.map(x=>x/days)],
+    val=A=>{const q=pd(A);return sim(hrs,q[0],q[1]).net};
+  // 주간 코인으로 효율(수익 증가 ÷ 코인)이 높은 순서로 구매
+  let A={w:[0,0,0],l:[0,0,0]},coins=Math.max(0,wk-boss),base=val(A);
+  for(let g=0;g<2*LIM*3;g++){
+    let best=null;
+    for(const kd of ["w","l"]){
+      
+      for(let st=0;st<3;st++){
+        if(CO[st]>coins||A[kd][st]>=(kd==="l"&&st===1?LIM-bL:LIM))continue;
+        const B={w:A.w.slice(),l:A.l.slice()};B[kd][st]++;
+        const gain=(val(B)-base)/CO[st];
+        if(gain>1e-9&&(!best||gain>best.gain))best={st,B,gain};
+      }
+    }
+    if(!best)break;
+    A=best.B;coins-=CO[best.st];base=val(A);
+  }
+  const q=pd(A),Wd=q[0],Ld=q[1];
+  const s0=ses(0,Wd,Ld),a=sim(0.5,Wd,Ld),b=sim(1,Wd,Ld),H=sim(hrs,Wd,Ld),r=x=>Math.round(x*100)/100;
+  const plan=x=>x[0]+x[1]+x[2]?"3단계 "+x[0]+" · 2단계 "+x[1]+" · 1단계 "+x[2]:"-";
+  $("coinHint").textContent="주간 유니온 코인 "+wk.toLocaleString("ko-KR")+"개";
+  $("coinW").textContent="사냥 "+(Math.max(0,wk-boss)-coins).toLocaleString("ko-KR")+" + 보스 "+boss.toLocaleString("ko-KR")+" / "+wk.toLocaleString("ko-KR")+" 개"+(boss>wk?" (보스용이 더 많음)":"");
+  $("planW").textContent=plan(A.w);
+  $("planL").textContent=plan(A.l);
+  $("bossPR").textContent=bP+" 개";
+  $("bossLR").textContent=bL+" 개";
+  const v0=val({w:[0,0,0],l:[0,0,0]}),gW=(val({w:[1,0,0],l:[0,0,0]})-v0)*days/70,gL=(val({w:[0,0,0],l:[1,0,0]})-v0)*days/70;
+  $("eff").textContent="부 "+fmt(gW)+" / 행운 "+fmt(gL);
+  $("mesoTotal").textContent=s0.fw?r(s0.mOn)+"% (버프 중) / "+r(s0.mOff)+"% (꺼짐) → 30분 평균 "+r(s0.m)+"%":r(s0.m)+"%";
+  $("dropTotal").textContent=s0.fl?r(s0.dOn)+"% (버프 중) / "+r(s0.dOff)+"% (꺼짐) → 30분 평균 "+r(s0.d)+"%":r(s0.d)+"%";
+  $("mesoAvg").textContent=r(H.m)+"%";
+  $("dropAvg").textContent=r(H.d)+"%";
+  $("arMesoPct").textContent="= "+ar(v("arMeso"))+"%";
+  $("arDropPct").textContent="= "+ar(v("arDrop"))+"%";
+  $("potMesoHint").textContent=v("potMeso")>100?"상한 100% 적용 (입력 "+v("potMeso")+"%)":"상한 100%";
+  $("potDropHint").textContent=v("potDrop")>200?"상한 200% 적용 (입력 "+v("potDrop")+"%)":"상한 200%";
+  $("r1").textContent=fmt(a.meso);
+  $("r2").textContent=(n*cyc*0.000425*(100+s0.d/2+24)/100).toFixed(2)+" 개";
+  $("r3").textContent=fmt(a.frag);
+  $("r4").textContent=fmt(-a.cost);
+  $("t30").textContent=fmt(a.net);
+  $("t60").textContent=fmt(b.net);
+  $("t480").textContent=fmt(H.net);
+  $("hl").textContent=hrs;
+  $("coinU").textContent=r(H.coin)+" 개";
+  $("capV").textContent=isFinite(cap)?fmt(cap):"미적용";
+  const tm=base30>0?cap/base30*30:Infinity;
+  $("capT").textContent=!isFinite(tm)?"-":Math.floor(tm/60)+"시간 "+Math.round(tm%60)+"분"+(tm>hrs*60?" (사냥 시간 내 미도달)":"");
+  $("t30").classList.toggle("neg",a.net<0);
+}
+const KEY="maple-calc-v1",els=()=>document.querySelectorAll("input:not([data-skip]),select:not([data-skip])");
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"{}");els().forEach(i=>{if(!(i.id in s))return;if(i.type==="checkbox")i.checked=!!s[i.id];else i.value=s[i.id]})}catch(e){}}
+function save(){try{const s={};els().forEach(i=>{s[i.id]=i.type==="checkbox"?i.checked:i.value});localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
+load();
+els().forEach(i=>{const h=()=>{calc();save()};i.addEventListener("input",h);i.addEventListener("change",h)});
+$("reset").onclick=()=>{try{localStorage.removeItem(KEY)}catch(e){}location.reload()};
+const PK="maple-calc-presets-v1",msg=x=>{$("pmsg").textContent=x};
+const getP=()=>{try{return JSON.parse(localStorage.getItem(PK)||"{}")||{}}catch(e){return{}}};
+const setP=o=>{try{localStorage.setItem(PK,JSON.stringify(o));return true}catch(e){return false}};
+const state=()=>{const s={};els().forEach(i=>{s[i.id]=i.type==="checkbox"?(i.checked?1:0):i.value});return s};
+const applyState=s=>{els().forEach(i=>{
+  if(!Object.prototype.hasOwnProperty.call(s,i.id))return;const x=s[i.id];
+  if(i.type==="checkbox"){i.checked=!!+x;return}
+  const str=String(x).slice(0,40);
+  if(i.tagName==="SELECT"){if([...i.options].some(o=>o.value===str))i.value=str;return}
+  if(i.type==="number"&&!/^-?\d*\.?\d*$/.test(str))return;
+  i.value=str});calc();save()};
+function renderP(sel){const names=Object.keys(getP()),l=$("plist");l.innerHTML="";
+  names.forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;l.appendChild(o)});
+  if(sel&&names.includes(sel))l.value=sel}
+$("psave").onclick=()=>{const n=$("pname").value.trim().slice(0,30);if(!n){msg("프리셋 이름을 입력해 주세요.");return}
+  const o=getP();o[n]=state();if(setP(o)){renderP(n);msg("“"+n+"” 프리셋을 저장했어요.")}else msg("이 브라우저에서는 저장할 수 없어요.")};
+$("pload").onclick=()=>{const n=$("plist").value,o=getP();if(!n||!o[n]){msg("불러올 프리셋을 선택해 주세요.");return}applyState(o[n]);msg("“"+n+"” 프리셋을 불러왔어요.")};
+$("pdel").onclick=()=>{const n=$("plist").value,o=getP();if(!n||!o[n]){msg("삭제할 프리셋을 선택해 주세요.");return}delete o[n];setP(o);renderP();msg("“"+n+"” 프리셋을 삭제했어요.")};
+const enc=s=>"MC1."+btoa(unescape(encodeURIComponent(JSON.stringify(s)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const dec=c=>{c=c.trim();if(c.slice(0,4)!=="MC1.")throw 0;let b=c.slice(4).replace(/-/g,"+").replace(/_/g,"/");while(b.length%4)b+="=";
+  const s=JSON.parse(decodeURIComponent(escape(atob(b))));if(!s||typeof s!=="object"||Array.isArray(s))throw 0;return s};
+$("gen").onclick=()=>{$("code").value=enc(state());msg("공유 코드를 만들었어요. 복사해서 전달해 주세요.")};
+$("copy").onclick=()=>{const c=$("code");if(!c.value)c.value=enc(state());c.select();
+  const fail=()=>msg("자동 복사가 막혀 있어요. 코드를 직접 선택해 복사해 주세요.");
+  let ok=false;try{ok=document.execCommand("copy")}catch(e){}
+  if(ok)msg("복사했어요.");else if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(c.value).then(()=>msg("복사했어요."),fail);else fail()};
+$("applyCode").onclick=()=>{try{applyState(dec($("codeIn").value));msg("공유 코드를 불러왔어요.")}catch(e){msg("올바르지 않은 공유 코드예요.")}};
+renderP();
+calc();
+</script>
+</body>
+</html>
